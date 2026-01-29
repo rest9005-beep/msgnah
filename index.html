@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RedBlack Social</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="bg"></div>
+
+  <header class="topbar">
+    <div class="wrap topbar__inner">
+      <a class="brand" href="#" id="brand">
+        <span class="brand__logo">RB</span>
+        <span class="brand__name">RedBlack Social</span>
+      </a>
+
+      <div class="topbar__right">
+        <button class="btn btn-ghost" id="newPostBtn">+ Пост</button>
+        <div class="userpill" id="userPill" hidden>
+          <span class="dot"></span>
+          <span class="userpill__name" id="userName"></span>
+          <button class="btn btn-ghost btn-sm" id="logoutBtn">Выйти</button>
+        </div>
+        <button class="btn btn-primary" id="openAuthBtn">Войти</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="card hero__card">
+        <h1>Чёрно‑красная лента</h1>
+        <p>Фото/видео, описание, лайки и комментарии. Всё работает на чистом <b>HTML/CSS/JS</b> и хранится в твоём браузере.</p>
+        <div class="hero__actions">
+          <button class="btn btn-primary" id="heroAuthBtn">Регистрация / Вход</button>
+          <button class="btn btn-ghost" id="heroRefreshBtn">Обновить ленту</button>
+        </div>
+        <div class="hint">
+          <span class="hint__tag">MVP</span>
+          <span>Для продакшена нужен backend и нормальная безопасность.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="feed">
+      <div class="feed__head">
+        <h2>Лента</h2>
+        <div class="feed__tools">
+          <input class="input" id="searchInput" placeholder="Поиск по описанию/автору..." />
+          <button class="btn btn-ghost" id="refreshBtn">Обновить</button>
+        </div>
+      </div>
+
+      <div id="feedList" class="feed__list"></div>
+
+      <div id="emptyState" class="card empty" hidden>
+        <div class="empty__title">Пока нет постов</div>
+        <div class="empty__text">Нажми “+ Пост” и выложи первое фото или видео.</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- AUTH MODAL -->
+  <div class="modal" id="authModal" hidden>
+    <div class="modal__backdrop" data-close="authModal"></div>
+    <div class="modal__panel card">
+      <div class="modal__head">
+        <div>
+          <div class="modal__title" id="authTitle">Вход</div>
+          <div class="modal__sub">username + пароль (хранение в localStorage)</div>
+        </div>
+        <button class="iconbtn" data-close="authModal" aria-label="Close">✕</button>
+      </div>
+
+      <div class="tabs">
+        <button class="tab tab--active" id="tabLogin">Вход</button>
+        <button class="tab" id="tabRegister">Регистрация</button>
+      </div>
+
+      <form id="loginForm" class="form">
+        <label class="label">Username</label>
+        <input class="input" id="loginUsername" autocomplete="username" required minlength="3" maxlength="20" />
+        <label class="label">Пароль</label>
+        <input class="input" id="loginPassword" type="password" autocomplete="current-password" required minlength="6" />
+        <button class="btn btn-primary w100" type="submit">Войти</button>
+      </form>
+
+      <form id="registerForm" class="form" hidden>
+        <label class="label">Username</label>
+        <input class="input" id="regUsername" autocomplete="username" required minlength="3" maxlength="20" />
+        <label class="label">Пароль</label>
+        <input class="input" id="regPassword" type="password" autocomplete="new-password" required minlength="6" />
+        <button class="btn btn-primary w100" type="submit">Создать аккаунт</button>
+      </form>
+
+      <div class="note">
+        ⚠️ Это демо: пароль хэшируется SHA‑256 в браузере, без сервера.
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW POST MODAL -->
+  <div class="modal" id="postModal" hidden>
+    <div class="modal__backdrop" data-close="postModal"></div>
+    <div class="modal__panel card">
+      <div class="modal__head">
+        <div>
+          <div class="modal__title">Новый пост</div>
+          <div class="modal__sub">Фото или видео + описание</div>
+        </div>
+        <button class="iconbtn" data-close="postModal" aria-label="Close">✕</button>
+      </div>
+
+      <form id="postForm" class="form">
+        <label class="label">Файл</label>
+        <input class="input" id="postFile" type="file" accept="image/*,video/*" required />
+        <label class="label">Описание</label>
+        <textarea class="input textarea" id="postDesc" placeholder="Напиши что-нибудь..." maxlength="1000"></textarea>
+        <button class="btn btn-primary w100" type="submit">Опубликовать</button>
+      </form>
+
+      <div class="note">
+        Медиа сохраняется в IndexedDB (внутри браузера). Если очистить данные сайта — всё пропадёт.
+      </div>
+    </div>
+  </div>
+
+  <template id="postTpl">
+    <article class="card post">
+      <div class="post__top">
+        <div class="post__meta">
+          <div class="badge"><span class="dot"></span> <span class="post__author"></span></div>
+          <div class="post__time"></div>
+        </div>
+        <button class="btn btn-like post__likeBtn" title="Лайк">
+          <span class="heart">♥</span>
+          <span class="post__likeCount">0</span>
+        </button>
+      </div>
+
+      <div class="post__desc"></div>
+
+      <div class="post__media"></div>
+
+      <div class="post__bottom">
+        <div class="post__commentsTitle">Комментарии</div>
+
+        <form class="post__commentForm">
+          <input class="input post__commentInput" placeholder="Написать комментарий..." maxlength="500" />
+          <button class="btn btn-primary btn-sm" type="submit">Отпр.</button>
+        </form>
+
+        <div class="post__comments"></div>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js" type="module"></script>
+</body>
+</html>
